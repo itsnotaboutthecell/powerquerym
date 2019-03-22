@@ -16,7 +16,7 @@ let
     #"Split: Wind - Wind Direction and Wind (MPH)" = Table.SplitColumn(#"Split: Day - Weekday and Date", "Wind", Splitter.SplitTextByEachDelimiter({" "}, QuoteStyle.Csv, false), {"Wind Direction", "Wind (MPH)"}),
     #"Split High / Low - High and Low" = Table.SplitColumn(#"Split: Wind - Wind Direction and Wind (MPH)", "High / Low", Splitter.SplitTextByEachDelimiter({"°"}, QuoteStyle.Csv, false), {"High", "Low"}),
     #"Replace: mph" = Table.ReplaceValue(#"Split High / Low - High and Low","mph","",Replacer.ReplaceText,{"Wind (MPH)"}),
-    #"Replace: --" = Table.ReplaceValue(#"Replace: mph","--","-",Replacer.ReplaceText,{"High"}),
+    #"Replace: --" = Table.ReplaceValue(#"Replace: mph","--","-",Replacer.ReplaceText,{"High","Low"}),
     #"Replace: °" = Table.ReplaceValue(#"Replace: --","°","",Replacer.ReplaceText,{"High", "Low"}),
 
     fnDateCheck = (dateSeries as text) as date =>
