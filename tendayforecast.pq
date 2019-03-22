@@ -18,9 +18,16 @@ let
     #"Replace: mph" = Table.ReplaceValue(#"Split High / Low - High and Low","mph","",Replacer.ReplaceText,{"Wind (MPH)"}),
     #"Replace: --" = Table.ReplaceValue(#"Replace: mph","--","-",Replacer.ReplaceText,{"High"}),
     #"Replace: °" = Table.ReplaceValue(#"Replace: --","°","",Replacer.ReplaceText,{"High", "Low"}),
-    #"Custom: Date_Series" = Table.AddColumn(#"Replace: °", "Date_Series", each Date.From([Partial Date] & " " & Text.From(Date.Year(DateTime.LocalNow()))), type date),
-    #"Custom: Date" = Table.AddColumn(#"Custom: Date_Series", "Date", each if [Date_Series] >= #date(Date.Year(DateTime.LocalNow()),1,1) then [Date_Series] else Date.AddYears([Date_Series], -1), type date),
-    #"Removed Other Columns" = Table.SelectColumns(#"Custom: Date",{"Date", "Description", "High", "Low", "Precip", "Wind Direction", "Wind (MPH)", "Humidity"}),
+
+    fnDateCheck = (dateSeries as text) as date =>
+    let
+        cleanDate = Date.From(dateSeries & " " & Text.From(Date.Year(DateTime.LocalNow()))),
+        dateCheck = if cleanDate > Date.AddDays(Date.From(DateTime.LocalNow()), 15) then Date.AddYears(cleanDate, -1) else cleanDate
+    in
+        if cleanDate > Date.AddDays(Date.From(DateTime.LocalNow()), 14) then Date.AddYears(cleanDate, -1) else cleanDate,
+
+    #"Custom: Date_Series" = Table.AddColumn(#"Replace: °", "Date", each fnDateCheck([Partial Date]), type date),
+    #"Removed Other Columns" = Table.SelectColumns(#"Custom: Date_Series",{"Date", "Description", "High", "Low", "Precip", "Wind Direction", "Wind (MPH)", "Humidity"}),
     #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Humidity", Percentage.Type}, {"Precip", Percentage.Type}, {"Wind (MPH)", Int64.Type}, {"High", Int64.Type}, {"Low", Int64.Type}, {"Description", type text}})
 in
     #"Changed Type"
