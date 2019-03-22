@@ -2,7 +2,6 @@
     Created By: Alex Powers ; George Mount
     Websites: http://www.itsnotaboutthecell.com ; http://www.georgejmount.com
     LinkedIn: https://www.linkedin.com/in/alexmpowers/ ; https://www.linkedin.com/in/gjmount/
-    Contact: alexmpowers@itsnotaboutthecell.com
 */
 
 (zipCode as text) as table =>
