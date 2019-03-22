@@ -21,8 +21,7 @@ let
 
     fnDateCheck = (dateSeries as text) as date =>
     let
-        cleanDate = Date.From(dateSeries & " " & Text.From(Date.Year(DateTime.LocalNow()))),
-        dateCheck = if cleanDate > Date.AddDays(Date.From(DateTime.LocalNow()), 15) then Date.AddYears(cleanDate, -1) else cleanDate
+        cleanDate = Date.From(dateSeries & " " & Text.From(Date.Year(DateTime.LocalNow())))
     in
         if cleanDate > Date.AddDays(Date.From(DateTime.LocalNow()), 14) then Date.AddYears(cleanDate, -1) else cleanDate,
 
