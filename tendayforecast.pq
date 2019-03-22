@@ -8,7 +8,6 @@
 (zipCode as text) as table =>
 let
     Source = Web.Page(Web.Contents("https://weather.com/weather/tenday/l/" & Text.From(zipCode) & ":4:US")),
-    #"Demote Headers" = Source{0}[Data],
     #"List Column Names" = Table.AddColumn(Table.SelectRows(Record.ToTable(Table.DemoteHeaders(Source{0}[Data]){0}), each not Text.Contains([Value], "Column")), "List of Lists", each {[Name], [Value]})[List of Lists],
     #"Demote Header Row" = Table.DemoteHeaders(Table.RemoveColumns(Source{0}[Data],List.Range(Table.ColumnNames(Source{0}[Data]), 0, 1))),
     #"Renamed Columns" = Table.RenameColumns(#"Demote Header Row",#"List Column Names"),
