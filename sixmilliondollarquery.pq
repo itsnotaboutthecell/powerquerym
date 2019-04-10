@@ -13,30 +13,31 @@
 
 let
     Source = Excel.Workbook(Web.Contents("https://www.ers.usda.gov/webdocs/DataFiles/48747/Unemployment.xls"), null, true),
-    #"Unemployment Med HH Inc_Sheet" = Source{[Name="Unemployment Med HH Inc"]}[Data],
-
-
-/*
-    A custom recursive function that looks for the header row indicator of "FIPStxt" and exits upon completion.
-    To initiate a recursive event use the @ symbol and the function name.
-    Ensure that you have an exit condition to avoid being stuck in an infinite loop.
-*/
-
-    getHeader = (counter as number) =>
-    let
-        header = #"Unemployment Med HH Inc_Sheet"[Column1]{counter}
-    in
-        if header = "FIPStxt" then counter
-        else @getHeader(counter + 1),
-
-    headerRow = getHeader(0),
-    #"Remove Top Rows: headerRow" = Table.Skip(#"Unemployment Med HH Inc_Sheet",headerRow),
-    #"Headers: Promote" = Table.PromoteHeaders(#"Remove Top Rows: headerRow", [PromoteAllScalars=true]),
-    #"Headers: Uppercase" = Table.TransformColumnNames(#"Headers: Promote", Text.Upper),
-    #"Headers: Replace ""_"" with "" """ = Table.TransformColumnNames(#"Headers: Uppercase", each Replacer.ReplaceText(_, "_", " ")),
-    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Headers: Replace ""_"" with "" """, {"FIPSTXT", "STATE", "AREA NAME"}, "Attribute", "Value"),
-    #"Split Column: Right 5" = Table.SplitColumn(#"Unpivoted Other Columns", "Attribute", Splitter.SplitTextByPositions({0, 5}, true), {"Attribute.1", "Year"}),
-    #"Pivoted Column" = Table.Pivot(#"Split Column: Right 5", List.Distinct(#"Split Column: Right 5"[Attribute.1]), "Attribute.1", "Value"),
-    #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"FIPSTXT", Int64.Type}, {"STATE", type text}, {"AREA NAME", type text}, {"Year", Int64.Type}, {"CIVILIAN LABOR FORCE", Int64.Type}, {"EMPLOYED", Int64.Type}, {"UNEMPLOYED", Int64.Type}, {"UNEMPLOYMENT RATE", type number}, {"MEDIAN HOUSEHOLD INCOME", Int64.Type}, {"MED HH INCOME PERCENT OF STATE TOTAL", type number}, {"RURAL URBAN CONTINUUM CODE", Int64.Type}, {"URBAN INFLUENCE CODE", Int64.Type}, {"METRO", Int64.Type}})
+    #"Unemployment Med HH Inc_Sheet" = Source{[Name="Unemployment Med HH Inc"]}[Data], 
+    // Extract the previous identifier's Column1 as a list. Find the position of the text "FIPStxt", its first occurence while ignoring case sensitivity
+    #"Find Position" = Table.Skip(
+        #"Unemployment Med HH Inc_Sheet",
+        List.PositionOf(
+                #"Unemployment Med HH Inc_Sheet"[Column1], "FIPStxt", 1, Comparer.OrdinalIgnoreCase
+                )
+            ),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Find Position", [PromoteAllScalars=true]),
+    /*
+        Clean each item in Column Names. 
+            The use of a underscore avoids the hardcoding of individual column headers and instead transforms each item in the collection
+            We used a Replacer to ReplaceText of underscores to spaces in our headers, this function is wrapped with a Text.Proper to standardize all column headers 
+    */   
+    #"Clean Headers" = Table.TransformColumnNames(
+        #"Promoted Headers", 
+        each 
+        Text.Proper(
+            Replacer.ReplaceText( _ , "_", " ")
+            )
+        ),
+    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Clean Headers", {"Fipstxt", "State", "Area Name"}, "Attribute", "Value"),
+    // Rename the auto generated Attribute.2 Column Header to Year. This step avoids and unnnecessary Table.RenameColumns function
+    #"Split Column by Delimiter" = Table.SplitColumn(#"Unpivoted Other Columns", "Attribute", Splitter.SplitTextByEachDelimiter({" "}, QuoteStyle.Csv, true), {"Attribute.1", "Year"}),
+    #"Pivoted Column" = Table.Pivot(#"Split Column by Delimiter", List.Distinct(#"Split Column by Delimiter"[Attribute.1]), "Attribute.1", "Value", List.Count),
+    #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"Fipstxt", type text}, {"State", type text}, {"Area Name", type text}, {"Year", Int64.Type}, {"Civilian Labor Force", Int64.Type}, {"Employed", Int64.Type}, {"Unemployed", Int64.Type}, {"Unemployment Rate", Int64.Type}, {"Median Household Income", Int64.Type}, {"Med Hh Income Percent Of State Total", Int64.Type}, {"Rural Urban Continuum Code", Int64.Type}, {"Urban Influence Code", Int64.Type}, {"Metro", Int64.Type}})
 in
     #"Changed Type"
