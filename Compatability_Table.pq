@@ -16,7 +16,7 @@ let
                         Table = table,
                         Function = function,
                         Type = type
-                    ],
+                        ],
                 {
                     {
                         "Hello, World!", // Text
@@ -38,8 +38,8 @@ let
                 }
         ),
     #"Transposed Table" = Table.Transpose(Source, {"Values"}),
-    #"Data Types" = Table.AddColumn(#"Transposed Table", "Type", each Value.Type([Values])),
-    #"Compatability: Text" = Table.AddColumn(#"Data Types", "Text", each [Values] & " Hello Steve!", type text),
+    #"Custom Types" = Table.AddColumn(#"Transposed Table", "Type", each Value.Type([Values])),
+    #"Compatability: Text" = Table.AddColumn(#"Custom Types", "Text", each [Values] & " Hello Steve!", type text),
     #"Compatability: Number" = Table.AddColumn(#"Compatability: Text", "Number", each [Values] + 45, type number),
     #"Compatability: Logical" = Table.AddColumn(#"Compatability: Number", "Logical", each false = [Values], type logical),
     #"Compatability: Date" = Table.AddColumn(#"Compatability: Logical", "Date", each #date(2022,10,31) - [Values], type date),
