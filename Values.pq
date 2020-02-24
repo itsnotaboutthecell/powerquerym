@@ -34,7 +34,7 @@ let
                         , // table
                         , // Function
                           // Type
-                }
+                    }
                 }
         ),
     #"Transposed Table" = Table.Transpose(Source, {"Values"}),
