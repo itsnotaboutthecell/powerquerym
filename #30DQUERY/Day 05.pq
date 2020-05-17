@@ -8,7 +8,7 @@ let
             [Valid To] - [Valid From]
         )
             > 365)
-            or ([Is Salesperson] = true and Date.Year([Valid To]) = 9999)
+            or ([Is Salesperson] = false and Date.Year([Valid To]) = 9999)
     ),
     #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows", {
         "Employee Key", 
