@@ -1,4 +1,4 @@
-**Database:** SQL Server
+**Database Server:** SQL Server
 ___
 
 | Name                              | Supports Query Folding | SQL Equivalent         |
