@@ -1,28 +1,10 @@
 let
-    ideasWebsite = "https://ideas.powerbi.com/ideas/",
-    Source = Web.BrowserContents(ideasWebsite),
-    PageCount =
-        Text.AfterDelimiter(
-            Text.BetweenDelimiters(
-                Source,
-                "pagination-ellipses",
-                "</a>"
-            ),
-            ">",
-            2
-        ),
-    topPages =
-        Table.FromList(
-            {1..Number.From(PageCount)},
-            Splitter.SplitByNothing(),
-            type table [ID = Int64.Type]
-        ),
-    ExtractPages =
+    fxIdeaScrapper =
         (PagePath as number) =>
             let
                 Source =
                     Web.Contents(
-                        ideasWebsite,
+                        "https://ideas.powerbi.com/ideas/",
                         [
                             RelativePath =
                                 Text.Combine(
@@ -80,22 +62,45 @@ let
                     )
             in
                 #"Custom: Transformations",
-    pbiIdeas =
-        Table.AddColumn(
-            topPages,
-            "Ideas Page",
-            each ExtractPages([ID]),
-            type table
+    Source =
+        List.Generate(
+            () =>
+                [
+                    page = 1,
+                    ideas = fxIdeaScrapper(page)
+                ],
+            each not Table.IsEmpty([ideas]),
+            each
+                [
+                    page = [page] + 1,
+                    ideas = fxIdeaScrapper(page)
+                ]
         ),
-    #"Removed Other Columns" =
-        Table.SelectColumns(
-            pbiIdeas,
-            {"Ideas Page"}
+    #"Converted to Table" =
+        Table.FromList(
+            Source,
+            Splitter.SplitByNothing(),
+            null,
+            null,
+            ExtraValues.Error
         ),
-    #"Expanded Ideas Page" =
+    #"Expanded Column1" =
+        Table.ExpandRecordColumn(
+            #"Converted to Table",
+            "Column1",
+            {
+                "page",
+                "ideas"
+            },
+            {
+                "page",
+                "ideas"
+            }
+        ),
+    #"Expanded ideas" =
         Table.ExpandTableColumn(
-            #"Removed Other Columns",
-            "Ideas Page",
+            #"Expanded Column1",
+            "ideas",
             {
                 "votes",
                 "Date",
@@ -115,8 +120,12 @@ let
         ),
     #"Changed Type" =
         Table.TransformColumnTypes(
-            #"Expanded Ideas Page",
+            #"Expanded ideas",
             {
+                {
+                    "page",
+                    Int64.Type
+                },
                 {
                     "votes",
                     Int64.Type
