@@ -66,6 +66,10 @@ let
                             {
                                 "id",
                                 each Text.AfterDelimiter(_, "=")
+                            },
+                            {
+                                "user",
+                                each if _ = "" then null else _
                             }
                         }
                     )
