@@ -42,6 +42,11 @@ let
                             {
                                 "user",
                                 ".text-capitalize"
+                            },
+                            {
+                                "id",
+                                ".m-v-10:nth-child(2) > A.link-ideas.link\-\-light:nth-child(1):nth-last-child(1)",
+                                each [Attributes][href]?
                             }
                         },
                         [RowSelector = ".col-lg-8 .list-group-item\-\-ideas"]
@@ -57,6 +62,10 @@ let
                             {
                                 "comments",
                                 each Number.From(Text.BeforeDelimiter(_, " Comments"))
+                            },
+                            {
+                                "id",
+                                each Text.AfterDelimiter(_, "=")
                             }
                         }
                     )
@@ -107,7 +116,8 @@ let
                 "title",
                 "comments",
                 "state",
-                "user"
+                "user",
+                "id"
             },
             {
                 "votes",
@@ -115,7 +125,8 @@ let
                 "title",
                 "comments",
                 "state",
-                "user"
+                "user",
+                "id"
             }
         ),
     #"Changed Type" =
@@ -149,6 +160,10 @@ let
                 {
                     "user",
                     type text
+                },
+                {
+                    "id",
+                    type text
                 }
             }
         ),
@@ -162,7 +177,8 @@ let
                 "title",
                 "comments",
                 "state",
-                "user"
+                "user",
+                "id"
             }
         )
 in
