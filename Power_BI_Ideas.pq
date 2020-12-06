@@ -151,6 +151,19 @@ let
                     type text
                 }
             }
+        ),
+    #"Removed Errors" =
+        Table.RemoveRowsWithErrors(
+            #"Changed Type",
+            {
+                "page",
+                "votes",
+                "Date",
+                "title",
+                "comments",
+                "state",
+                "user"
+            }
         )
 in
-    #"Changed Type"
+    #"Removed Errors"
