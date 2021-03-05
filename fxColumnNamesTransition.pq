@@ -6,16 +6,18 @@ let
                     Table.TransformColumnNames(
                         #"Identifier",
                         each
-                            Replacer.ReplaceText(
-                                Text.Combine(
-                                    Splitter.SplitTextByCharacterTransition(
-                                        {"a".."z"},
-                                        {"A".."Z"}
-                                    )(_),
+                            Text.Proper(
+                                Replacer.ReplaceText(
+                                    Text.Combine(
+                                        Splitter.SplitTextByCharacterTransition(
+                                            {"a".."z"},
+                                            {"A".."Z"}
+                                        )(_),
+                                        " "
+                                    ),
+                                    "_",
                                     " "
-                                ),
-                                "_",
-                                " "
+                                )
                             )
                     )
             in
