@@ -1,0 +1,88 @@
+{
+    "name": "Ideas.PowerBI.com",
+    "description": "",
+    "version": "1.0",
+    "culture": "en-US",
+    "modifiedTime": "2020-12-07T18:56:07.6238623+00:00",
+    "pbi:mashup": {
+        "fastCombine": false,
+        "allowNativeQueries": false,
+        "queriesMetadata": {
+            "Submissions": {
+                "queryId": "c7320f88-c1bc-41ec-80ca-96da43fd858f",
+                "queryName": "Submissions",
+                "queryGroupId": "e1eadd88-7f5b-44c6-9480-dd765da181b2"
+            },
+            "Completed": {
+                "queryId": "79e1c3a2-c987-44b5-8b09-ac2d25fb95d1",
+                "queryName": "Completed",
+                "queryGroupId": "e1eadd88-7f5b-44c6-9480-dd765da181b2"
+            },
+            "Ideas": {
+                "queryId": "99c8989f-da01-4ccb-95c7-53a38be60ef8",
+                "queryName": "Ideas",
+                "queryGroupId": "b21b4f89-5b3d-4ad8-b6b7-62f78cbfb3dc",
+                "loadEnabled": true
+            },
+            "fxIdeaScraper": {
+                "queryId": "13259c9c-e8f1-4c39-92a5-d7c90f457747",
+                "queryName": "fxIdeaScraper",
+                "queryGroupId": "18bfec05-a414-410d-8f3d-98fe2d20e5c5"
+            }
+        },
+        "document": "section Section1;\r\nshared Submissions = let\r\n  Source = List.Generate(\n            () =>\n                [\n                    page = 1,\n                    ideas = fxIdeaScraper(\"?page=\", page)\n                ],\n            each not Table.IsEmpty([ideas]),\n            each\n                [\n                    page = [page] + 1,\n                    ideas = fxIdeaScraper(\"?page=\", page)\n                ]\n        ),\r\n  #\"Converted to Table\" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),\r\n  #\"Expanded Column1\" = Table.ExpandRecordColumn(#\"Converted to Table\", \"Column1\", {\"page\", \"ideas\"}, {\"page\", \"ideas\"}),\r\n  #\"Expanded ideas\" = Table.ExpandTableColumn(#\"Expanded Column1\", \"ideas\", {\"votes\", \"Date\", \"title\", \"comments\", \"state\", \"user\", \"id\"}, {\"votes\", \"Date\", \"title\", \"comments\", \"state\", \"user\", \"id\"})\r\nin\r\n  #\"Expanded ideas\";\r\nshared Completed = let\r\n  Source = List.Generate(\n            () =>\n                [\n                    page = 1,\n                    ideas =\n                        fxIdeaScraper(\n                            \"?view=Completed&viewId=39f3dbe7-c213-e911-a95e-000d3a4f3343&page=\",\n                            page\n                        )\n                ],\n            each not Table.IsEmpty([ideas]),\n            each\n                [\n                    page = [page] + 1,\n                    ideas =\n                        fxIdeaScraper(\n                            \"?view=Completed&viewId=39f3dbe7-c213-e911-a95e-000d3a4f3343&page=\",\n                            page\n                        )\n                ]\n        ),\r\n  #\"Converted to Table\" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),\r\n  #\"Expanded Column1\" = Table.ExpandRecordColumn(#\"Converted to Table\", \"Column1\", {\"page\", \"ideas\"}, {\"page\", \"ideas\"}),\r\n  #\"Expanded ideas\" = Table.ExpandTableColumn(#\"Expanded Column1\", \"ideas\", {\"votes\", \"Date\", \"title\", \"comments\", \"state\", \"user\", \"id\"}, {\"votes\", \"Date\", \"title\", \"comments\", \"state\", \"user\", \"id\"})\r\nin\r\n  #\"Expanded ideas\";\r\nshared Ideas = let\r\n  Source = Table.Combine({Submissions, Completed}),\r\n  #\"Changed column type\" = Table.TransformColumnTypes(Source, {{\"page\", Int64.Type}, {\"votes\", Int64.Type}, {\"Date\", type date}, {\"title\", type text}, {\"comments\", Int64.Type}, {\"state\", type text}, {\"user\", type text}, {\"id\", type text}}),\r\n  #\"Removed errors\" = Table.RemoveRowsWithErrors(#\"Changed column type\", {\"page\", \"votes\", \"Date\", \"title\", \"comments\", \"state\", \"user\", \"id\"})\r\nin\r\n  #\"Removed errors\";\r\nshared fxIdeaScraper = let\r\n  Query = (#\"Query String\" as text, PagePath as number) =>\n            let\n                Source =\n                    Web.Contents(\n                        \"https://ideas.powerbi.com/ideas/\",\n                        [\n                            RelativePath =\n                                Text.Combine(\n                                    {\n                                        #\"Query String\",\n                                        Text.From(PagePath)\n                                    }\n                                )\n                        ]\n                    ),\n                #\"Extracted Table From Html\" =\n                    Html.Table(\n                        Source,\n                        {\n                            {\n                                \"votes\",\n                                \".post-column-one SPAN\"\n                            },\n                            {\n                                \"Date\",\n                                \".text-capitalize + *\"\n                            },\n                            {\n                                \"title\",\n                                \".post-title *\"\n                            },\n                            {\n                                \"comments\",\n                                \".pull-left + *\"\n                            },\n                            {\n                                \"state\",\n                                \".text\"\n                            },\n                            {\n                                \"user\",\n                                \".text-capitalize\"\n                            },\n                            {\n                                \"id\",\n                                \".m-v-10:nth-child(2) > A.link-ideas.link\\-\\-light:nth-child(1):nth-last-child(1)\",\n                                each [Attributes][href]?\n                            }\n                        },\n                        [RowSelector = \".col-lg-8 .list-group-item\\-\\-ideas\"]\n                    ),\n                #\"Custom: Transformations\" =\n                    Table.TransformColumns(\n                        #\"Extracted Table From Html\",\n                        {\n                            {\n                                \"Date\",\n                                each Date.From(DateTime.From(Text.AfterDelimiter(_, \"on \")))\n                            },\n                            {\n                                \"comments\",\n                                each Number.From(Text.BeforeDelimiter(_, \" Comments\"))\n                            },\n                            {\n                                \"id\",\n                                each Text.AfterDelimiter(_, \"=\")\n                            },\n                            {\n                                \"user\",\n                                each if _ = \"\" then null else _\n                            }\n                        }\n                    )\n            in\n                #\"Custom: Transformations\"\r\nin\r\n  Query;\r\n"
+    },
+    "annotations": [
+        {
+            "name": "pbi:QueryGroups",
+            "value": "[{\"id\":\"e1eadd88-7f5b-44c6-9480-dd765da181b2\",\"name\":\"Reference Queries\",\"description\":\"\",\"parentId\":null,\"order\":0},{\"id\":\"18bfec05-a414-410d-8f3d-98fe2d20e5c5\",\"name\":\"Functions\",\"description\":\"\",\"parentId\":null,\"order\":0},{\"id\":\"b21b4f89-5b3d-4ad8-b6b7-62f78cbfb3dc\",\"name\":\"Data Load\",\"description\":\"\",\"parentId\":null,\"order\":1}]"
+        }
+    ],
+    "entities": [
+        {
+            "$type": "LocalEntity",
+            "name": "Ideas",
+            "description": "",
+            "pbi:refreshPolicy": {
+                "$type": "FullRefreshPolicy",
+                "location": "Ideas.csv"
+            },
+            "attributes": [
+                {
+                    "name": "page",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "votes",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "Date",
+                    "dataType": "date"
+                },
+                {
+                    "name": "title",
+                    "dataType": "string"
+                },
+                {
+                    "name": "comments",
+                    "dataType": "int64"
+                },
+                {
+                    "name": "state",
+                    "dataType": "string"
+                },
+                {
+                    "name": "user",
+                    "dataType": "string"
+                },
+                {
+                    "name": "id",
+                    "dataType": "string"
+                }
+            ],
+            "partitions": [
+            ]
+        }
+    ]
+}
