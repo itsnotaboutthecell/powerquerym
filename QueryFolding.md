@@ -142,7 +142,7 @@ ___
 | Date.DayOfWeekName                | FALSE                  | DATENAME               |
 | Date.EndOfMonth                   | FALSE                  | EOMONTH                |
 | Text.At                           | FALSE                  | SUBSTRING              |
-| Text.Start                        | FALSE                  | LEFT                   |
+| Text.Start                        | TRUE                   | LEFT                   |
 | Text.Replace                      | FALSE                  | REPLACE                |
 | Text.Repeat                       | FALSE                  | REPLICATE              |
 | Text.Reverse                      | FALSE                  | REVERSE                |
