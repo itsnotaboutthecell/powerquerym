@@ -2,7 +2,6 @@
 ___
 |Name|Supports Query Folding|SQL Equivalent|
 |--|--|--|
-|Name|Supports Query Folding|SQL Equivalent|
 |Number.E|TRUE|2.71828182845904|
 |Number.PI|TRUE|3.14159265358979|
 |Number.Epsilon|TRUE|4.940656458412465E-324|
