@@ -140,7 +140,7 @@ ___
 | Date.AddQuarters                  | FALSE                  | DATEADD                |
 | Date.AddWeeks                     | FALSE                  | DATEADD                |
 | Date.DayOfWeekName                | FALSE                  | DATENAME               |
-| Date.EndOfMonth                   | FALSE                  | EOMONTH                |
+| Date.EndOfMonth                   | TRUE                   | EOMONTH                |
 | Text.At                           | FALSE                  | SUBSTRING              |
 | Text.Start                        | TRUE                   | LEFT                   |
 | Text.Replace                      | FALSE                  | REPLACE                |
