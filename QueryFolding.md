@@ -136,9 +136,9 @@ ___
 | Value.As                          | TRUE                   |                        |
 | Character.FromNumber              | FALSE                  | CHAR                   |
 | Text.PositionOf                   | FALSE                  | CHARINDEX              |
-| Date.AddDays                      | FALSE                  | DATEADD                |
-| Date.AddQuarters                  | FALSE                  | DATEADD                |
-| Date.AddWeeks                     | FALSE                  | DATEADD                |
+| Date.AddDays                      | TRUE                   | DATEADD                |
+| Date.AddQuarters                  | TRUE                   | DATEADD                |
+| Date.AddWeeks                     | TRUE                   | DATEADD                |
 | Date.DayOfWeekName                | FALSE                  | DATENAME               |
 | Date.EndOfMonth                   | TRUE                   | EOMONTH                |
 | Text.At                           | FALSE                  | SUBSTRING              |
