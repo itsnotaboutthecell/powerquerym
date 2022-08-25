@@ -1,28 +1,37 @@
 let
-	Source = Sql.Databases("localhost"),
-	AdventureWorksDW2017 = Source{[Name = "AdventureWorksDW2017"]}[Data],
-	dbo_DimCustomer = AdventureWorksDW2017{[Schema = "dbo", Item = "DimGeography"]}[Data],
-	#"Expanded DimCustomer" = Table.ExpandTableColumn(
-		dbo_DimCustomer, 
-		"DimCustomer", 
-		{"FactInternetSales"}, 
-		{"FactInternetSales"}
-	),
-	#"Expanded FactInternetSales" = Table.ExpandTableColumn(
-		#"Expanded DimCustomer", 
-		"FactInternetSales", 
-		{"SalesAmount"}, 
-		{"SalesAmount"}
-	),
-	#"Filtered Rows" = Table.SelectRows(#"Expanded FactInternetSales", each ([SalesAmount] = null)),
-	#"Removed Other Columns" = Table.SelectColumns(
-		#"Filtered Rows", 
-		{"City", "CountryRegionCode", "EnglishCountryRegionName"}
-	),
-	#"Removed Duplicates" = Table.Distinct(#"Removed Other Columns"),
-	#"Sorted Rows" = Table.Sort(
-		#"Removed Duplicates", 
-		{{"CountryRegionCode", Order.Ascending}, {"City", Order.Ascending}}
-	)
+    Source = Sql.Databases("localhost"),
+    WideWorldImportersDW = Source{[Name = "WideWorldImportersDW"]}[Data],
+    Dimension_Employee =
+        WideWorldImportersDW{[
+            Schema = "Dimension",
+            Item = "Employee"
+        ]}
+            [Data]
+            [[Employee]],
+    Dimension_Customer =
+        WideWorldImportersDW{[
+            Schema = "Dimension",
+            Item = "Customer"
+        ]}
+            [Data]
+            [[Primary Contact]],
+    UnionNames =
+        Table.Combine(
+            {
+                Dimension_Customer,
+                Dimension_Customer
+            }
+        ),
+    #"Removed Duplicates" = Table.Distinct(UnionNames),
+    #"Sorted Rows" =
+        Table.Sort(
+            #"Removed Duplicates",
+            {
+                {
+                    "Primary Contact",
+                    Order.Ascending
+                }
+            }
+        )
 in
-	#"Sorted Rows"
+    #"Sorted Rows"
