@@ -15,11 +15,21 @@ let
         ]}
             [Data]
             [[Primary Contact]],
+    #"Renamed Columns" =
+        Table.RenameColumns(
+            Dimension_Customer,
+            {
+                {
+                    "Primary Contact",
+                    "Employee"
+                }
+            }
+        ),
     UnionNames =
         Table.Combine(
             {
-                Dimension_Customer,
-                Dimension_Customer
+                Dimension_Employee,
+                #"Renamed Columns"
             }
         ),
     #"Removed Duplicates" = Table.Distinct(UnionNames),
@@ -28,7 +38,7 @@ let
             #"Removed Duplicates",
             {
                 {
-                    "Primary Contact",
+                    "Employee",
                     Order.Ascending
                 }
             }
